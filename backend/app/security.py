@@ -4,6 +4,9 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from pwdlib import PasswordHash
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Demo ke liye default; asli app mein .env se aayega (Phase 5 mein python-dotenv/settings)
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me")
 ALGORITHM = "HS256"

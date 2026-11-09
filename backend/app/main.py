@@ -1,5 +1,12 @@
 import logging
 
+from fastapi import Depends
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app import models
+from app.database import Base, engine, get_db
+
 from app.errors import register_error_handlers
 from app.errors import EmptyCartError
 from app.middleware import log_requests
@@ -10,6 +17,8 @@ from app.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="FoodOps API")
+Base.metadata.create_all(bind=engine)   # tables bana deta hai (Phase 8+ mein Alembic migrations)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:5173"],
@@ -54,45 +63,47 @@ menu_items: list[dict] = []
 next_id = 1
 
 
-@app.post("/menu", response_model=MenuItem, status_code=status.HTTP_201_CREATED)
-def create_menu_item(item: MenuItemCreate):
-    global next_id
-    new_item = {"id": next_id, **item.model_dump()}
-    menu_items.append(new_item)
-    next_id += 1
-    return new_item
+@app.post("/menu", response_model=MenuItem, status_code=status.HTTP_201_CREATED, tags=["menu"])
+def create_menu_item(item: MenuItemCreate, db: Session = Depends(get_db)):
+    obj = models.MenuItem(**item.model_dump())
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)          # DB ne jo id banayi woh wapas lao
+    return obj
 
 
-@app.get("/menu", response_model=list[MenuItem])
-def list_menu_items():
-    return menu_items
+@app.get("/menu", response_model=list[MenuItem], tags=["menu"])
+def list_menu_items(db: Session = Depends(get_db)):
+    return db.scalars(select(models.MenuItem)).all()
 
 
-@app.get("/menu/{item_id}", response_model=MenuItem)
-def get_menu_item(item_id: int):
-    for item in menu_items:
-        if item["id"] == item_id:
-            return item
-    raise HTTPException(status_code=404, detail="Menu item not found")
+@app.get("/menu/{item_id}", response_model=MenuItem, tags=["menu"])
+def get_menu_item(item_id: int, db: Session = Depends(get_db)):
+    obj = db.get(models.MenuItem, item_id)
+    if obj is None:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+    return obj
 
 
-@app.patch("/menu/{item_id}", response_model=MenuItem)
-def update_menu_item(item_id: int, changes: MenuItemUpdate):
-    for item in menu_items:
-        if item["id"] == item_id:
-            item.update(changes.model_dump(exclude_unset=True))
-            return item
-    raise HTTPException(status_code=404, detail="Menu item not found")
+@app.patch("/menu/{item_id}", response_model=MenuItem, tags=["menu"])
+def update_menu_item(item_id: int, changes: MenuItemUpdate, db: Session = Depends(get_db)):
+    obj = db.get(models.MenuItem, item_id)
+    if obj is None:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+    for field, value in changes.model_dump(exclude_unset=True).items():
+        setattr(obj, field, value)
+    db.commit()
+    db.refresh(obj)
+    return obj
 
 
-@app.delete("/menu/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_menu_item(item_id: int):
-    for i, item in enumerate(menu_items):
-        if item["id"] == item_id:
-            menu_items.pop(i)
-            return
-    raise HTTPException(status_code=404, detail="Menu item not found")
-
+@app.delete("/menu/{item_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["menu"])
+def delete_menu_item(item_id: int, db: Session = Depends(get_db)):
+    obj = db.get(models.MenuItem, item_id)
+    if obj is None:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+    db.delete(obj)
+    db.commit()
 
 @app.post("/orders/test")
 def test_order(cart: list[float]):

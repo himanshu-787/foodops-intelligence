@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MenuItemCreate(BaseModel):
@@ -8,8 +9,8 @@ class MenuItemCreate(BaseModel):
 
 
 class MenuItem(MenuItemCreate):
-    id: int                                # response mein id bhi hogi
-
+    model_config = ConfigDict(from_attributes=True)   # ORM object ko response mein badalne ke liye
+    id: int
 
 class MenuItemUpdate(BaseModel):           # PATCH ke liye: sab optional
     name: str | None = Field(default=None, min_length=2, max_length=50)
