@@ -1,8 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from fastapi import FastAPI, HTTPException, status
 from app.schemas import MenuItem, MenuItemCreate, MenuItemUpdate
+from app.auth import router as auth_router
 
 app = FastAPI(title="FoodOps API")
+app.include_router(auth_router)
 
 # Abhi ke liye fake data (database Phase 5 mein aayega)
 restaurants = [
