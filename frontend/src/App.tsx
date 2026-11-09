@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import { useAuth } from "./auth/AuthContext";
+import { LoginForm } from "./components/LoginForm";
+import { MenuList } from "./components/MenuList";
 import { CuisineFilter } from "./components/CuisineFilter";
 import { Pagination } from "./components/Pagination";
 import { RestaurantCard, type Restaurant } from "./components/RestaurantCard";
 import { SearchBar } from "./components/SearchBar";
 import { useDebounce } from "./hooks/useDebounce";
+
 
 const API_URL = "http://127.0.0.1:8000";
 const PAGE_SIZE = 12;
@@ -15,6 +19,7 @@ type RestaurantPage = {
 };
 
 function App() {
+  const { email, loading: authLoading, logout } = useAuth();
   const [query, setQuery] = useState("");
   const [cuisine, setCuisine] = useState("");
   const [page, setPage] = useState(1);
@@ -65,7 +70,22 @@ function App() {
 
   return (
     <div className="container">
-      <h1>FoodOps 🍽️</h1>
+      <div className="header">
+        <h1>FoodOps 🍽️</h1>
+        {email && (
+          <div>
+            <span>Hi, {email} </span>
+            <button className="btn" onClick={logout}>Logout</button>
+          </div>
+        )}
+      </div>
+
+      {!authLoading && !email && <LoginForm />}
+
+      <h2>Menu</h2>
+      <MenuList />
+
+      <h2>Restaurants</h2>
 
       <div className="filters">
         <SearchBar value={query} onChange={handleQueryChange} />

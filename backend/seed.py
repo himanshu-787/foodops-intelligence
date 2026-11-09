@@ -17,6 +17,9 @@ for i in range(200):
         rating=round(random.uniform(2.5, 5.0), 1),
         is_veg=(cuisine == "South Indian"),
     ))
+
+for name, price, veg in [("Dosa", 80, True), ("Idli", 40, True), ("Biryani", 250, False)]:
+    db.add(models.MenuItem(name=name, price=price, is_veg=veg, stock=10))   
 db.commit()
 db.close()
 print("200 restaurants add ho gaye")

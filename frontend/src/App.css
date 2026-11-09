@@ -189,3 +189,9 @@
 .pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; }
 .pagination button { padding: 8px 16px; border: none; border-radius: 8px; background: #e23744; color: white; cursor: pointer; }
 .pagination button:disabled { background: #ccc; cursor: not-allowed; }
+
+.header { display: flex; justify-content: space-between; align-items: center; }
+.auth-form { display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin-bottom: 16px; }
+.btn { padding: 8px 16px; border: none; border-radius: 8px; background: #e23744; color: white; cursor: pointer; }
+.btn:disabled { background: #ccc; cursor: not-allowed; }
+.link { background: none; border: none; color: #e23744; cursor: pointer; text-align: left; padding: 0; }
