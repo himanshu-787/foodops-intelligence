@@ -1,9 +1,25 @@
+import logging
+
+from app.errors import register_error_handlers
+from app.errors import EmptyCartError
+from app.middleware import log_requests
 from fastapi import FastAPI, HTTPException
 from fastapi import FastAPI, HTTPException, status
 from app.schemas import MenuItem, MenuItemCreate, MenuItemUpdate
 from app.auth import router as auth_router
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="FoodOps API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+app.middleware("http")(log_requests)
+register_error_handlers(app)
 app.include_router(auth_router)
 
 # Abhi ke liye fake data (database Phase 5 mein aayega)
@@ -12,7 +28,6 @@ restaurants = [
     {"id": 2, "name": "Dosa Corner", "cuisine": "South Indian", "rating": 4.2},
     {"id": 3, "name": "Pizza Point", "cuisine": "Italian", "rating": 4.0},
 ]
-
 
 @app.get("/")
 def health_check():
@@ -77,3 +92,15 @@ def delete_menu_item(item_id: int):
             menu_items.pop(i)
             return
     raise HTTPException(status_code=404, detail="Menu item not found")
+
+
+@app.post("/orders/test")
+def test_order(cart: list[float]):
+    if not cart:
+        raise EmptyCartError("Cart khaali hai")
+    return {"total": sum(cart)}
+
+
+@app.get("/crash")
+def crash():
+    return 1 / 0        # jaanbujhkar bug, sirf demo ke liye
