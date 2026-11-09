@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from pydantic import BaseModel, ConfigDict, Field
+from app.order_status import OrderStatus
 
 
 class MenuItemCreate(BaseModel):
@@ -54,3 +55,24 @@ class OrderOut(BaseModel):
     status: str
     total: float
     items: list[OrderItemOut]    
+
+class OrderStatusUpdate(BaseModel):
+    status: OrderStatus    
+
+class RestaurantCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    cuisine: str = Field(min_length=2, max_length=50)
+    rating: float = Field(default=0.0, ge=0, le=5)
+    is_veg: bool = False
+
+
+class RestaurantOut(RestaurantCreate):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+
+
+class RestaurantPage(BaseModel):
+    total: int
+    page: int
+    page_size: int
+    items: list[RestaurantOut]    

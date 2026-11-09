@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Index, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+
 
 from app.database import Base
 
@@ -53,3 +55,14 @@ class OrderItem(Base):
     price_at_order: Mapped[float]      # denormalization (5.3): menu ka price baad mein badle toh bhi purana bill sahi
 
     order: Mapped["Order"] = relationship(back_populates="items")
+
+class Restaurant(Base):
+    __tablename__ = "restaurants"
+    # Composite index: cuisine filter + rating sort dono fast (5.3 ka leftmost prefix rule)
+    __table_args__ = (Index("ix_restaurant_cuisine_rating", "cuisine", "rating"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), index=True)
+    cuisine: Mapped[str] = mapped_column(String(50))
+    rating: Mapped[float] = mapped_column(default=0.0)
+    is_veg: Mapped[bool] = mapped_column(default=False)    

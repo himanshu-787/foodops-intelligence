@@ -2,6 +2,8 @@ import logging
 
 from app.orders import router as orders_router
 
+from app.restaurants import router as restaurants_router
+
 from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -33,6 +35,7 @@ app.middleware("http")(log_requests)
 register_error_handlers(app)
 app.include_router(auth_router)
 app.include_router(orders_router)
+app.include_router(restaurants_router)
 
 # Abhi ke liye fake data (database Phase 5 mein aayega)
 restaurants = [

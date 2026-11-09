@@ -3,6 +3,9 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.order_status import OrderStatus, can_transition
+from app.schemas import OrderCreate, OrderOut, OrderStatusUpdate
+
 from app import models
 from app.auth import get_current_user
 from app.database import get_db
@@ -95,4 +98,37 @@ def get_order(
     # Doosre user ka order bhi 404 dikhao (authorization, 4.4)
     if order is None or order.user_id != user.id:
         raise HTTPException(404, "Order not found")
+    return order
+
+@router.patch("/{order_id}/status", response_model=OrderOut)
+def update_order_status(
+    order_id: int,
+    body: OrderStatusUpdate,
+    email: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    order = db.get(models.Order, order_id)
+    if order is None:
+        raise HTTPException(404, "Order not found")
+
+    current = OrderStatus(order.status)
+    new = body.status
+
+    if not can_transition(current, new):
+        raise HTTPException(
+            409, f"Invalid transition: {current.value} -> {new.value}"
+        )
+
+    # Cancel hua toh stock wapas karo (compensation)
+    if new == OrderStatus.CANCELLED:
+        for line in order.items:
+            db.execute(
+                update(models.MenuItem)
+                .where(models.MenuItem.id == line.menu_item_id)
+                .values(stock=models.MenuItem.stock + line.quantity)
+            )
+
+    order.status = new.value
+    db.commit()
+    db.refresh(order)
     return order
