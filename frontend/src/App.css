@@ -195,3 +195,8 @@
 .btn { padding: 8px 16px; border: none; border-radius: 8px; background: #e23744; color: white; cursor: pointer; }
 .btn:disabled { background: #ccc; cursor: not-allowed; }
 .link { background: none; border: none; color: #e23744; cursor: pointer; text-align: left; padding: 0; }
+
+.cart { margin: 16px 0; max-width: 360px; }
+.cart-line { display: flex; justify-content: space-between; gap: 12px; margin: 6px 0; }
+.qty { width: 28px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer; }
+.success { color: #1b7f3b; }

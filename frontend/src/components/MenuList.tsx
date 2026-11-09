@@ -9,21 +9,27 @@ export type MenuItem = {
   stock: number;
 };
 
-export function MenuList() {
+type Props = {
+  refreshKey: number;
+  onAdd: (item: MenuItem) => void;
+};
+
+export function MenuList({ refreshKey, onAdd }: Props) {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // refreshKey badla (order ke baad) toh stock dobara laao
   useEffect(() => {
     api<MenuItem[]>("/menu")
       .then(setItems)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [refreshKey]);
 
   if (loading) return <p>Menu load ho raha hai...</p>;
   if (error) return <p className="error">Error: {error}</p>;
-  if (items.length === 0) return <p>Menu khaali hai. Backend mein items add karo.</p>;
+  if (items.length === 0) return <p>Menu khaali hai.</p>;
 
   return (
     <div className="grid">
@@ -33,6 +39,9 @@ export function MenuList() {
           <p>{item.is_veg ? "🟢 Veg" : "🔴 Non-veg"}</p>
           <p>₹{item.price}</p>
           <p>{item.stock > 0 ? `Stock: ${item.stock}` : "❌ Out of stock"}</p>
+          <button className="btn" disabled={item.stock === 0} onClick={() => onAdd(item)}>
+            Add
+          </button>
         </div>
       ))}
     </div>
