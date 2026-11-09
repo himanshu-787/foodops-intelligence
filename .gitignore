@@ -5,3 +5,6 @@ __pycache__/
 .vscode/
 node_modules/
 foodops.db
+.coverage
+htmlcov/
+.pytest_cache/
