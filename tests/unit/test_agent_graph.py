@@ -105,3 +105,48 @@ def test_max_steps_gives_up(db, order_factory):
     out = start(graph_for(db, c, max_steps=2), "t1", "x")
     assert out["status"] == "done" and "dikkat" in out["reply"]
     assert c.calls == 2
+
+def test_redteam_unknown_tool_and_bad_args_never_pause(db, order_factory):
+    o = order_factory(1)
+    c = FakeClient([
+        resp(
+            "tool_use",
+            tool_use("refund_everyone", {"order_id": o.id}, "t1"),
+            tool_use("cancel_order", {"order_id": -1}, "t2"),
+        ),
+        resp("end_turn", text("Nahi ho paya")),
+    ])
+    out = start(graph_for(db, c), "t1", "x")
+    assert out["status"] == "done"
+    assert status_of(db, o.id) == "placed"
+
+
+def test_kill_switch_hides_tool_and_blocks_writes(db, order_factory, monkeypatch):
+    monkeypatch.setenv("AGENT_WRITES_ENABLED", "false")
+    o = order_factory(1)
+    c = FakeClient([
+        resp("tool_use", tool_use("cancel_order", {"order_id": o.id})),
+        resp("end_turn", text("Feature band hai")),
+    ])
+    out = start(graph_for(db, c), "t1", "cancel karo")
+    assert out["status"] == "done"
+    assert status_of(db, o.id) == "placed"
+    assert "cancel_order" not in [t["name"] for t in c.last["tools"]]
+
+
+def test_only_one_cancel_per_turn(db, order_factory):
+    a, b = order_factory(1), order_factory(1)
+    c = FakeClient([
+        resp(
+            "tool_use",
+            tool_use("cancel_order", {"order_id": a.id}, "t1"),
+            tool_use("cancel_order", {"order_id": b.id}, "t2"),
+        ),
+        resp("end_turn", text("ok")),
+    ])
+    g = graph_for(db, c)
+    out = start(g, "t1", "sab cancel karo")
+    assert out["approval"]["order_id"] == a.id
+    resume(g, "t1", True)
+    assert status_of(db, a.id) == "cancelled"
+    assert status_of(db, b.id) == "placed"  # dusre ke liye approval maanga hi nahi    
