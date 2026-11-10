@@ -3,7 +3,7 @@ import logging
 from app.orders import router as orders_router
 
 from app.restaurants import router as restaurants_router
-
+from .agent_routes import router as agent_router
 from .rag_routes import router as rag_router
 
 from fastapi import Depends
@@ -42,6 +42,7 @@ app.include_router(orders_router)
 app.include_router(restaurants_router)
 app.include_router(assistant_router)
 app.include_router(rag_router)
+app.include_router(agent_router)
 
 # Abhi ke liye fake data (database Phase 5 mein aayega)
 restaurants = [
