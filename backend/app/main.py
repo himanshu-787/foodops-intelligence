@@ -4,6 +4,8 @@ from app.orders import router as orders_router
 
 from app.restaurants import router as restaurants_router
 
+from .rag_routes import router as rag_router
+
 from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -19,6 +21,8 @@ from fastapi import FastAPI, HTTPException, status
 from app.schemas import MenuItem, MenuItemCreate, MenuItemUpdate
 from app.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
+from .assistant import router as assistant_router
+
 
 app = FastAPI(title="FoodOps API")
 Base.metadata.create_all(bind=engine)   # tables bana deta hai (Phase 8+ mein Alembic migrations)
@@ -36,6 +40,8 @@ register_error_handlers(app)
 app.include_router(auth_router)
 app.include_router(orders_router)
 app.include_router(restaurants_router)
+app.include_router(assistant_router)
+app.include_router(rag_router)
 
 # Abhi ke liye fake data (database Phase 5 mein aayega)
 restaurants = [
