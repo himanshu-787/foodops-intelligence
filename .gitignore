@@ -8,3 +8,5 @@ foodops.db
 .coverage
 htmlcov/
 .pytest_cache/
+backend/app/rag/index.npz
+eval_report.json
