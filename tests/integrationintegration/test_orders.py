@@ -106,3 +106,17 @@ def test_cancel_restores_stock(client, auth_headers):
         headers=auth_headers,
     )
     assert stock_of(client, item) == 3
+
+
+def test_my_orders_list(client, auth_headers):
+    item = make_item(client, price=50, stock=5)
+    client.post(
+        "/orders",
+        json=order_body(item, 1),
+        headers={**auth_headers, "Idempotency-Key": "key-my-orders-1"},
+    )
+    res = client.get("/orders", headers=auth_headers)
+    assert res.status_code == 200
+    orders = res.json()
+    assert len(orders) >= 1
+    assert orders[0]["total"] == 50

@@ -1,0 +1,45 @@
+name: docker
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t foodops-backend .
+
+      - name: Run container and probe
+        run: |
+          docker run -d --name app -p 8000:8000 \
+            -e SECRET_KEY=ci-secret \
+            -e DATABASE_URL=sqlite:///./ci.db \
+            foodops-backend \
+            sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+          for i in $(seq 1 30); do curl -fs localhost:8000/health && break; sleep 2; done
+          curl -fs localhost:8000/ready
+          docker logs app
+
+  push:
+    needs: smoke
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}/backend:${{ github.sha }}

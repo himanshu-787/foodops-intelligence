@@ -86,6 +86,18 @@ def place_order(
     db.refresh(order)
     return order
 
+@router.get("", response_model=list[OrderOut])
+def my_orders(
+    email: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    user = db.scalar(select(models.User).where(models.User.email == email))
+    return db.scalars(
+        select(models.Order)
+        .where(models.Order.user_id == user.id)
+        .order_by(models.Order.id.desc())
+        .limit(50)
+    ).all()
 
 @router.get("/{order_id}", response_model=OrderOut)
 def get_order(

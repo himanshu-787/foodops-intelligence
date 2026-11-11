@@ -2,6 +2,7 @@ import logging
 import os
 
 from .. import assistant, models
+from ..metrics import AGENT_ACTIONS
 
 audit = logging.getLogger("foodops.audit")
 CANCELLABLE = {"placed", "confirmed"}
@@ -30,13 +31,15 @@ def check_cancel(db, user, order_id: int):
 def execute_cancel(db, user, order_id: int) -> dict:
     """Asli write. Approval ke BAAD hi call hota hai. Dobara check karta hai."""
     order, err = check_cancel(db, user, order_id)
-    if err:
+    if err or order is None:
         audit.info("action=cancel_order user_id=%s order_id=%s result=refused", user.id, order_id)
-        return {"error": err}
+        AGENT_ACTIONS.labels("cancel_order", "refused").inc()
+        return {"error": err or f"Order {order_id} not found"}
 
     # TODO: yahan apni order_status.py ka cancel function call karo
     # (wo stock wapas karta hai). Ye simplified version stock wapas NAHI karta.
     order.status = "cancelled"
     db.commit()
     audit.info("action=cancel_order user_id=%s order_id=%s result=cancelled", user.id, order_id)
+    AGENT_ACTIONS.labels("cancel_order", "cancelled").inc()
     return {"order_id": order.id, "status": "cancelled"}

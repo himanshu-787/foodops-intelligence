@@ -200,3 +200,8 @@
 .cart-line { display: flex; justify-content: space-between; gap: 12px; margin: 6px 0; }
 .qty { width: 28px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer; }
 .success { color: #1b7f3b; }
+
+.nav { display: flex; gap: 16px; align-items: center; }
+.nav a { color: #e23744; text-decoration: none; font-weight: 600; }
+.order-card { margin-bottom: 12px; }
+.order-head { display: flex; justify-content: space-between; }

@@ -1,0 +1,52 @@
+groups:
+  - name: foodops
+    rules:
+      - alert: BackendDown
+        expr: |
+          up{job="foodops-backend"} == 0
+        for: 2m
+        labels: {severity: page}
+        annotations:
+          summary: "Backend ka /metrics scrape fail ho raha hai"
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(foodops_http_requests_total{status=~"5.."}[5m]))
+          / sum(rate(foodops_http_requests_total[5m])) > 0.05
+        for: 5m
+        labels: {severity: page}
+        annotations:
+          summary: "5xx error rate 5% se upar"
+
+      - alert: HighLatencyP95
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(foodops_http_request_seconds_bucket[5m]))) > 8
+        for: 10m
+        labels: {severity: ticket}
+        annotations:
+          summary: "p95 latency 8s se upar"
+
+      - alert: LLMErrorsHigh
+        expr: |
+          sum(rate(foodops_llm_calls_total{outcome="error"}[5m]))
+          / sum(rate(foodops_llm_calls_total[5m])) > 0.2
+        for: 5m
+        labels: {severity: page}
+        annotations:
+          summary: "LLM calls ka 20% se zyada fail"
+
+      - alert: LLMCostSpike
+        expr: |
+          sum(increase(foodops_llm_cost_usd_total[1h])) > 1
+        labels: {severity: ticket}
+        annotations:
+          summary: "Pichhle 1 ghante ka LLM kharcha limit se upar"
+
+      - alert: RagNoAnswerHigh
+        expr: |
+          sum(rate(foodops_rag_answers_total{outcome="no_answer"}[15m]))
+          / sum(rate(foodops_rag_answers_total[15m])) > 0.5
+        for: 30m
+        labels: {severity: ticket}
+        annotations:
+          summary: "RAG aadhe se zyada sawalon par 'nahi mila' bol raha hai"

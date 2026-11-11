@@ -56,4 +56,8 @@ def ask(
         r = answer_question(body.question, store, _embedder(), client)
     except anthropic.AnthropicError:
         raise HTTPException(status_code=502, detail="AI service abhi available nahi hai")
-    return AskResponse(reply=r.reply, sources=r.sources, grounded=r.grounded)
+    return AskResponse(
+        reply=r.reply,
+        sources=[Source(**s) for s in r.sources],
+        grounded=r.grounded,
+    )

@@ -2,6 +2,7 @@ import json
 import time
 from collections import defaultdict, deque
 from pathlib import Path
+from typing import Any
 
 import anthropic
 from dotenv import load_dotenv
@@ -12,6 +13,7 @@ from .evals.tracing import TracedClient
 from . import models
 from .auth import get_current_user
 from .database import get_db
+from .metrics import RATE_LIMITED
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
@@ -136,7 +138,7 @@ def run_tool(registry: dict, name: str, raw_input: dict) -> tuple[str, bool]:
 def run_assistant(message: str, db: Session, user, client, max_steps: int = 5):
     """Return: (reply_text, tools_used)"""
     registry = build_tools(db, user)
-    messages = [{"role": "user", "content": message}]
+    messages: list[dict[str, Any]] = [{"role": "user", "content": message}]
     used: list[str] = []
 
     for _ in range(max_steps):
@@ -181,6 +183,7 @@ def check_rate_limit(user_id: int) -> None:
     while q and now - q[0] > RATE_WINDOW:
         q.popleft()
     if len(q) >= RATE_LIMIT:
+        RATE_LIMITED.inc()
         raise HTTPException(status_code=429, detail="Bahut zyada requests, 1 minute baad try karo")
     q.append(now)
 
@@ -196,7 +199,7 @@ class ChatResponse(BaseModel):
 
 
 def get_client():
-    return anthropic.Anthropic()  # lazy; tests isse override karte hain
+    return TracedClient(anthropic.Anthropic(), tag="api")  # lazy; tests override karte hain
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -214,6 +217,3 @@ def chat(
     except RuntimeError:
         raise HTTPException(status_code=500, detail="Assistant jawab nahi de paya")
     return ChatResponse(reply=reply, tools_used=used)
-
-def get_client():
-    return TracedClient(anthropic.Anthropic(), tag="api")  # lazy; tests override karte hain

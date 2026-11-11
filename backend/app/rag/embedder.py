@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 
@@ -16,6 +17,6 @@ class Embedder:
         if self._model is None:
             from fastembed import TextEmbedding
 
-            self._model = TextEmbedding(self.model_name)
+            self._model = TextEmbedding(self.model_name, cache_dir=os.getenv("EMBED_CACHE_DIR"))
         vecs = np.array(list(self._model.embed(texts)), dtype=np.float32)
         return normalize(vecs)

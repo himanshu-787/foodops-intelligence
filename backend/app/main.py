@@ -22,21 +22,30 @@ from app.schemas import MenuItem, MenuItemCreate, MenuItemUpdate
 from app.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 from .assistant import router as assistant_router
+from .config import cors_origins
+from .health import router as health_router
+from .metrics import metrics_middleware, router as metrics_router
+from .logging_setup import request_id_middleware, setup_logging
 
+setup_logging()
 
 app = FastAPI(title="FoodOps API")
-Base.metadata.create_all(bind=engine)   # tables bana deta hai (Phase 8+ mein Alembic migrations)
+# Base.metadata.create_all(bind=engine)   # Alembic migrations handle schema (Phase 14.3)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=cors_origins(),
     allow_methods=["*"],
     allow_headers=["*"],
 )
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 app.middleware("http")(log_requests)
+app.middleware("http")(metrics_middleware)
+app.middleware("http")(request_id_middleware)
+
 register_error_handlers(app)
+app.include_router(health_router)
+app.include_router(metrics_router)
 app.include_router(auth_router)
 app.include_router(orders_router)
 app.include_router(restaurants_router)

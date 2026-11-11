@@ -1,0 +1,20 @@
+{
+  "include": [
+    "backend",
+    "ai-engine",
+    "tests"
+  ],
+  "extraPaths": [
+    "backend",
+    "ai-engine"
+  ],
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": [
+        "backend",
+        "ai-engine"
+      ]
+    }
+  ]
+}

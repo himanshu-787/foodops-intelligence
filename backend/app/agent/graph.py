@@ -6,6 +6,7 @@ from langgraph.types import Command, interrupt
 from pydantic import BaseModel, Field, ValidationError
 
 from .. import assistant
+from ..metrics import AGENT_ACTIONS
 from . import actions
 
 SYSTEM = (
@@ -32,7 +33,7 @@ class CancelArgs(BaseModel):
     order_id: int = Field(gt=0)
 
 
-class State(TypedDict, total=False):
+class State(TypedDict):
     messages: list  # plain dicts (checkpointer ke liye serializable)
     steps: int
     stop: str
@@ -108,6 +109,7 @@ def build_graph(db, user, client, checkpointer, max_steps: int = 6):
                 user.id,
                 a.order_id,
             )
+            AGENT_ACTIONS.labels("cancel_order", "rejected_by_user").inc()
             return json.dumps({"cancelled": False, "reason": "user ne approve nahi kiya"}), False
         return json.dumps(actions.execute_cancel(db, user, a.order_id)), False
 

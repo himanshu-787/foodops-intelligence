@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 
+from ..metrics import RAG_ANSWERS, RAG_TOP_SCORE
 from .store import VectorStore
 
 MODEL = "claude-haiku-4-5"
@@ -26,7 +27,10 @@ class RagAnswer:
 
 def answer_question(question: str, store: VectorStore, embedder, client, k: int = 3) -> RagAnswer:
     hits = store.search(embedder.embed([question])[0], k)
+    if hits:
+        RAG_TOP_SCORE.observe(hits[0][1])
     if not hits or hits[0][1] < MIN_SCORE:
+        RAG_ANSWERS.labels("no_answer").inc()
         return RagAnswer(NO_ANSWER, [], False)  # LLM call hi nahi
 
     context = "\n\n".join(
@@ -35,7 +39,6 @@ def answer_question(question: str, store: VectorStore, embedder, client, k: int 
     resp = client.messages.create(
         model=MODEL,
         max_tokens=400,
-        temperature=0,
         system=SYSTEM,
         messages=[
             {
@@ -57,4 +60,5 @@ def answer_question(question: str, store: VectorStore, embedder, client, k: int 
         }
         for n in cited
     ]
+    RAG_ANSWERS.labels("grounded" if cited else "ungrounded").inc()
     return RagAnswer(text, sources, grounded=bool(cited))

@@ -4,6 +4,8 @@ import math
 import time
 from collections import deque
 
+from ..metrics import LLM_CALLS, LLM_COST, LLM_LATENCY, LLM_TOKENS
+
 log = logging.getLogger("foodops.llm")
 
 # USD per 1M tokens: (input, output). PLACEHOLDER, pricing page se verify karo.
@@ -58,6 +60,13 @@ class TracedClient:
         }
         self.records.append(rec)
         log.info(json.dumps(rec))  # content nahi, sirf metadata
+
+        LLM_CALLS.labels(self.tag, model, "error" if error else "ok").inc()
+        LLM_LATENCY.labels(model).observe(time.perf_counter() - t0)
+        LLM_TOKENS.labels(model, "input").inc(in_t)
+        LLM_TOKENS.labels(model, "output").inc(out_t)
+        if rec["cost_usd"] is not None:  # unknown model: cost guess nahi
+            LLM_COST.labels(model).inc(rec["cost_usd"])
 
     def summary(self) -> dict:
         r = list(self.records)

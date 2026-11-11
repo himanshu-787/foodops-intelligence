@@ -3,7 +3,7 @@ import random
 from app import models
 from app.database import Base, SessionLocal, engine
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)  # Schema managed by Alembic
 
 cuisines = ["Mughlai", "South Indian", "Italian", "Chinese", "Cafe"]
 words = ["Biryani", "Dosa", "Pizza", "Noodles", "Coffee", "Thali", "Kebab"]

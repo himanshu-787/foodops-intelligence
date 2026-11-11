@@ -1,0 +1,13 @@
+.git
+.github
+.env
+*.db
+venv
+.venv
+__pycache__
+*.pyc
+node_modules
+frontend
+tests
+eval_report.json
+backend/app/rag/index.npz
