@@ -44,6 +44,4 @@ def auth_headers(client):
     return {"Authorization": f"Bearer {res.json()['access_token']}"}
 
 
-def make_item(client, name="Dosa", price=80, stock=3):
-    res = client.post("/menu", json={"name": name, "price": price, "stock": stock})
-    return res.json()["id"]
+from tests.helpers import make_item

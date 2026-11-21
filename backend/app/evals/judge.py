@@ -1,11 +1,12 @@
 import json
+import os
 from typing import Literal
 
 from pydantic import BaseModel, ValidationError
 
 from ..rag.answer import answer_question
 
-JUDGE_MODEL = "claude-sonnet-5-5"  # docs se verify karo; generator se alag rakhna acha hai
+JUDGE_MODEL = os.getenv("ANTHROPIC_JUDGE_MODEL", "claude-3-5-sonnet-20241022")
 SCORE = {"supported": 1.0, "partial": 0.5, "unsupported": 0.0}
 
 JUDGE_SYSTEM = """Tum ek strict fact-checker ho.

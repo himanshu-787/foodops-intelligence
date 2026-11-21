@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -8,7 +9,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-MODEL = "claude-haiku-4-5"
+MODEL = os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")
 
 # Abhi fake data. 10.5 mein asli DB se jodenge.
 FAKE_ORDERS = {

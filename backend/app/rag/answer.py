@@ -1,10 +1,11 @@
+import os
 import re
 from dataclasses import dataclass
 
 from ..metrics import RAG_ANSWERS, RAG_TOP_SCORE
 from .store import VectorStore
 
-MODEL = "claude-haiku-4-5"
+MODEL = os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")
 MIN_SCORE = 0.40  # GUESS hai. 11.3 ke search_demo scores se calibrate karo
 NO_ANSWER = "Mujhe iska jawab policy docs mein nahi mila. Support se baat karo."
 

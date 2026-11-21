@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from collections import defaultdict, deque
 from pathlib import Path
@@ -17,7 +18,7 @@ from .metrics import RATE_LIMITED
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-MODEL = "claude-haiku-4-5"
+MODEL = os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")
 router = APIRouter(prefix="/assistant", tags=["assistant"])
 
 SYSTEM = (
@@ -199,7 +200,9 @@ class ChatResponse(BaseModel):
 
 
 def get_client():
-    return TracedClient(anthropic.Anthropic(), tag="api")  # lazy; tests override karte hain
+    from .llm_client import get_default_llm_client
+
+    return get_default_llm_client(tag="api")  # lazy; tests override karte hain
 
 
 @router.post("/chat", response_model=ChatResponse)

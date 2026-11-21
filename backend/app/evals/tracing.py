@@ -8,8 +8,20 @@ from ..metrics import LLM_CALLS, LLM_COST, LLM_LATENCY, LLM_TOKENS
 
 log = logging.getLogger("foodops.llm")
 
-# USD per 1M tokens: (input, output). PLACEHOLDER, pricing page se verify karo.
-PRICES = {"claude-haiku-4-5": (1.00, 5.00)}
+# USD per 1M tokens: (input, output).
+PRICES = {
+    "claude-3-5-haiku-20241022": (1.00, 5.00),
+    "claude-3-5-haiku-latest": (1.00, 5.00),
+    "claude-3-5-sonnet-20241022": (3.00, 15.00),
+    "claude-3-5-sonnet-latest": (3.00, 15.00),
+    "claude-3-haiku-20240307": (0.25, 1.25),
+    "claude-haiku-4-5": (1.00, 5.00),
+    "llama-3.1-8b-instant": (0.05, 0.08),
+    "llama-3.3-70b-versatile": (0.59, 0.79),
+    "qwen/qwen3.8-27b": (0.20, 0.20),
+    "mixtral-8x7b-32768": (0.24, 0.24),
+    "gemma2-9b-it": (0.20, 0.20),
+}
 
 
 def estimate_cost(model: str, in_tok: int, out_tok: int) -> float | None:

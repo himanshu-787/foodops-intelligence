@@ -16,7 +16,9 @@ from .tracing import TracedClient
 
 def main() -> int:
     load_dotenv(RAG_DIR.parents[2] / ".env")
-    client = TracedClient(anthropic.Anthropic(), tag="eval")
+    from ..llm_client import get_default_llm_client
+
+    client = get_default_llm_client(tag="eval")
     store, emb = VectorStore.load(INDEX_PATH), Embedder()
 
     tools = evaluate_tools(client)
