@@ -128,7 +128,15 @@ class GroqAdapter:
     def __init__(self, api_key: str | None = None):
         import groq
 
-        self.client = groq.Groq(api_key=api_key or os.getenv("GROQ_API_KEY"))
+        raw_key = (api_key or os.getenv("GROQ_API_KEY") or "").strip()
+        # Auto-heal accidental reversed/misplaced 'gsk' prefix
+        if raw_key.endswith("gsk") and raw_key.startswith("_"):
+            raw_key = "gsk" + raw_key[:-3]
+        elif not raw_key.startswith("gsk_") and "gsk_" in raw_key:
+            idx = raw_key.index("gsk_")
+            raw_key = raw_key[idx:]
+
+        self.client = groq.Groq(api_key=raw_key)
         self.messages = self
 
     def create(self, **kwargs) -> SimpleNamespace:

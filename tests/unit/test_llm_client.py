@@ -76,3 +76,12 @@ def test_from_groq_response_parses_content_and_tools():
     assert res.content[1].input == {"item": "pizza"}
     assert res.usage.input_tokens == 15
     assert res.usage.output_tokens == 8
+
+
+def test_groq_adapter_heals_reversed_key(monkeypatch):
+    from app.llm_client import GroqAdapter
+
+    monkeypatch.setenv("GROQ_API_KEY", "_dummyfakegroqkeytestingonlygsk")
+    adapter = GroqAdapter()
+    assert adapter.client.api_key == "gsk_dummyfakegroqkeytestingonly"
+
