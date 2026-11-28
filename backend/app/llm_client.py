@@ -140,12 +140,12 @@ class GroqAdapter:
         self.messages = self
 
     def create(self, **kwargs) -> SimpleNamespace:
-        raw_model = kwargs.get("model", "llama-3.1-8b-instant")
-        if "claude" in raw_model:
-            if "sonnet" in raw_model:
-                model = os.getenv("GROQ_JUDGE_MODEL", "llama-3.3-70b-versatile")
+        raw_model = kwargs.get("model", "qwen/qwen3.8-27b")
+        if "claude" in raw_model or "llama" in raw_model:
+            if "sonnet" in raw_model or "judge" in raw_model:
+                model = os.getenv("GROQ_JUDGE_MODEL", "qwen/qwen3.8-27b")
             else:
-                model = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+                model = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
         else:
             model = raw_model
 
